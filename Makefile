@@ -8,7 +8,9 @@ JRE = java
 	$(JC) $(JFLAGS) $*.java
 
 CLASSES = \
-	Hello.java
+	com/craftinginterpreters/lox/Lox.java \
+	com/craftinginterpreters/lox/Scanner.java \
+	com/craftinginterpreters/lox/Token.java
 
 default: build
 
@@ -18,4 +20,4 @@ clean:
 	$(RM) *.class
 
 run: build
-	${JRE} Hello
+	${JRE} com.craftinginterpreters.lox.Lox
