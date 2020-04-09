@@ -3,11 +3,6 @@ JC = javac
 JRE = java
 JREFLAGS = -classpath ./target
 
-.SUFFIXES: .java .class
-
-.java.class:
-	$(JC) $(JFLAGS) $*.java
-
 TOOLCLASSES = \
 	com/craftinginterpreters/tool/GenerateAst.java
 
@@ -21,9 +16,11 @@ CLASSES = \
 
 default: build
 
-build: expr $(CLASSES:.java=.class) $(GENERATEDCLASSES:.java=.class)
+build: expr
+	$(JC) $(JFLAGS) $(CLASSES) $(GENERATEDCLASSES)
 
-toolbuild: $(TOOLCLASSES:.java=.class)
+toolbuild:
+	$(JC) $(JFLAGS) $(TOOLCLASSES)
 
 clean:
 	$(RM) -rf ./target/* $(GENERATEDCLASSES)
