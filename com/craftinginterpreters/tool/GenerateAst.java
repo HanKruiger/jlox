@@ -40,6 +40,9 @@ public class GenerateAst {
             + GenerateAst.class.toString() + ".\n// DO NOT EDIT MANUALLY!");
         writer.println("abstract class " + baseName + " {");
 
+        defineVisitor(writer, baseName, types);
+        writer.println();
+
         for (String type : types) {
             String[] split = type.split(":");
             String className = split[0].trim();
@@ -47,8 +50,24 @@ public class GenerateAst {
             defineType(writer, baseName, className, fieldDecls);
         }
 
+        // The base `accept` method. All subclasses must implement it (simply
+        // call the visitor's `visit` method and return the result).
+        writer.println();
+        writer.println("    abstract <R> R accept(Visitor<R> visitor);");
+
         writer.println("}");
         writer.close();
+    }
+
+    private static void defineVisitor(PrintWriter writer, String baseName,
+            List<String> types) {
+        writer.println("    interface Visitor<R> {");
+        for (String type : types) {
+            String typeName = type.split(":")[0].trim();
+            writer.println("        R visit" + typeName + baseName + "(" +
+                typeName + " " + baseName.toLowerCase() + ");");
+        }
+        writer.println("    }");
     }
 
     // Writes a single type in the hierarchy with fields and a constructor that
@@ -65,6 +84,7 @@ public class GenerateAst {
         }
         
         // Constructor
+        writer.println();
         writer.println("        " + className + "(");
         // Constructor parameters
         int argsWritten = 0;
@@ -84,6 +104,16 @@ public class GenerateAst {
             writer.println("            " + "this." + name + " = " + name + ";");
         }
         writer.println("        }");
+
+        // Visitor pattern
+        writer.println();
+        writer.println("        @Override");
+        writer.println("        <R> R accept(Visitor<R> visitor) {");
+        writer.println("            return visitor.visit" +
+        className + baseName + "(this);"
+        );
+        writer.println("        }");
+
         writer.println("    }");
     }
 }
