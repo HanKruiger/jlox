@@ -89,6 +89,8 @@ public class Scanner {
                     // the line counter has to be incremented.
                     while (peek() != '\n' && !isAtEnd()) advance();
                     // We don't add a token for the comment.
+                } else if (match('*')) {
+                    cStyleComment();
                 } else {
                     addToken(SLASH);
                 }
@@ -167,6 +169,34 @@ public class Scanner {
         // Trim surrounding "s and add the string as token.
         String value = source.substring(start + 1, current - 1);
         addToken(STRING, value);
+    }
+
+    private void cStyleComment() {
+        int nesting = 1;
+        while (nesting > 0) {
+            if (isAtEnd()) {
+                Lox.error(line, "Unterminated C-style comment.");
+                return;
+            }
+            char c = advance();
+
+            if (c == '\n') {
+                line++;
+                continue;
+            }
+
+            // A 'closing bracket' decrements the nesting counter
+            if (c == '*' && peek() == '/') {
+                nesting--;
+                advance();
+            }
+
+            // A 'opening bracket' increments the nesting counter
+            if (c == '/' && peek() == '*') {
+                nesting++;
+                advance();
+            }
+        }
     }
 
     private boolean match(char expected) {
