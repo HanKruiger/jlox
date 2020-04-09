@@ -44,6 +44,11 @@ public class Lox {
     }
 
     private static void run(String source) {
+        if (source == null) {
+            System.out.println("\nReached end of stream. Bye!");
+            System.exit(0);
+        }
+
         Scanner scanner = new Scanner(source);
         List<Token> tokens = scanner.scanTokens();
 
