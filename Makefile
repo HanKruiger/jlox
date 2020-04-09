@@ -12,7 +12,8 @@ GENERATEDCLASSES = \
 CLASSES = \
 	com/craftinginterpreters/lox/Lox.java \
 	com/craftinginterpreters/lox/Scanner.java \
-	com/craftinginterpreters/lox/Token.java
+	com/craftinginterpreters/lox/Token.java \
+	com/craftinginterpreters/lox/AstPrinter.java
 
 default: build
 
@@ -30,6 +31,9 @@ expr: toolbuild
 
 run: expr build
 	${JRE} ${JREFLAGS} com.craftinginterpreters.lox.Lox
+
+run_ast_printer: expr build
+	${JRE} ${JREFLAGS} com.craftinginterpreters.lox.AstPrinter
 
 run_test_file: build
 	${JRE} ${JREFLAGS} com.craftinginterpreters.lox.Lox test.lox
