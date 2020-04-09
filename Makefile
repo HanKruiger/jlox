@@ -21,3 +21,6 @@ clean:
 
 run: build
 	${JRE} com.craftinginterpreters.lox.Lox
+
+run_test_file: build
+	${JRE} com.craftinginterpreters.lox.Lox test.lox
