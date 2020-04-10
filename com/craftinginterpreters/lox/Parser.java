@@ -106,9 +106,24 @@ class Parser {
         }
     }
 
-    // expression → equality
+    // expression → ternary
     private Expr expression() {
-        return equality();
+        return ternary();
+    }
+
+    // ternary -> equality ( "?" expression ":" expression )*
+    private Expr ternary() {
+        Expr expr = equality();
+
+        if (match(QSTN)) {
+            Token leftOperator = previous();
+            Expr middle = expression();
+            Token rightOperator = consume(COLON, "Expect ':' in ternary operator.");
+            Expr right = expression();
+            expr = new Expr.Ternary(expr, leftOperator, middle, rightOperator, right);
+        }
+
+        return expr;
     }
     
     // equality → comparison ( ( "!=" | "==" ) comparison )*

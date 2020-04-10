@@ -11,6 +11,12 @@ public class AstPrinter implements Expr.Visitor<String> {
     public String visitBinaryExpr(Expr.Binary expr) {
         return parenthesize(expr.operator.lexeme, expr.left, expr.right);
     }
+
+    @Override
+    public String visitTernaryExpr(Expr.Ternary expr) {
+        return parenthesize(expr.leftOperator.lexeme +
+            expr.rightOperator.lexeme, expr.left, expr.middle, expr.right);
+    }
     
     @Override
     public String visitGroupingExpr(Expr.Grouping expr) {
