@@ -96,11 +96,14 @@ public class Interpreter implements Visitor<Object> {
             case PLUS:
                 if (left instanceof Double && right instanceof Double) {
                     return (double) left + (double) right;
-                } else if (left instanceof String && right instanceof String) {
-                    return (String) left + (String) right;
+                } else if (left instanceof String) {
+                    return (String) left + stringify(right);
+                } else if (right instanceof String) {
+                    return stringify(left) + right;
                 }
                 throw new RuntimeError(expr.operator,
-                    "Operands must be numbers or strings");
+                    "Operands must both be numbers or some of them have to be" +
+                    " a String");
             case MINUS:
                 checkNumberOperands(expr.operator, left, right);
                 return (double) left - (double) right;

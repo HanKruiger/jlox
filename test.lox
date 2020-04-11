@@ -1,1 +1,1 @@
-7 * 2 < 5 ? 21 + 21 : "not forty-two"
+"<3" == "<" + 3 ? "lovely" : "there's still a decimal point there but that's fine! " +  "<" + 3
