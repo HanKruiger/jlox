@@ -2,10 +2,13 @@ package com.craftinginterpreters.lox;
 
 import static com.craftinginterpreters.lox.TokenType.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 class Parser {
-    private static class ParseError extends RuntimeException {}
+    private static class ParseError extends RuntimeException {
+        private static final long serialVersionUID = 2322035634061302440L;
+    }
 
     private final List<Token> tokens;
     
@@ -16,12 +19,13 @@ class Parser {
         this.tokens = tokens;
     }
 
-    public Expr parse() {
-        try {
-            return expression();
-        } catch (ParseError error) {
-            return null;
+    // program → declarationOrStatement* EOF ;
+    public List<Stmt> parse() {
+        List<Stmt> statements = new ArrayList<>();
+        while (!isAtEnd()) {
+            statements.add(declarationOrStatement());
         }
+        return statements;
     }
 
     // Check if the current token is one of the given ones, and if so, consume
@@ -106,6 +110,59 @@ class Parser {
         }
     }
 
+    // declarationOrStatement → varDecl | statement ;
+    private Stmt declarationOrStatement() {
+        try {
+            if (peek().type == VAR) {
+                return varDeclaration();
+            } else {
+                return statement();
+            }
+        } catch (ParseError e) {
+            synchronize();
+            return null;
+        }
+    }
+
+    // varDecl → "var" IDENTIFIER ( "=" expression )? ";" ;
+    private Stmt varDeclaration() {
+        consume(VAR, "Expect 'var' keyword in variable declaration.");
+        Token name = consume(IDENTIFIER, "Expect variable name.");
+
+        Expr initializer = null;
+        if (match(EQUAL)) {
+            initializer = expression();
+        }
+
+        consume(SEMICOLON, "Expect ';' after variable declaration.");
+        return new Stmt.Var(name, initializer);
+    }
+
+    // statement → printStmt | exprStmt ;
+    private Stmt statement() {
+        if (peek().type == PRINT) {
+            return printStatement();
+        } else {
+            return expressionStatement();
+        }
+    }
+
+    // printStmt → "print" expressionStatement ;
+    private Stmt printStatement() {
+        consume(PRINT, "Expect 'print' keyword in print statement.");
+        Expr expr = expression();
+        consume(SEMICOLON, "Expect ';' after print value.");
+        return new Stmt.Print(expr);
+    }
+
+    // expressionStatement → expression ;
+    // ('cast' to a statement)
+    private Stmt expressionStatement() {
+        Expr expr = expression();
+        consume(SEMICOLON, "Expect ';' after expression.");
+        return new Stmt.Expression(expr);
+    }
+
     // expression → ternary
     private Expr expression() {
         return ternary();
@@ -118,9 +175,11 @@ class Parser {
         if (match(QSTN)) {
             Token leftOperator = previous();
             Expr middle = expression();
-            Token rightOperator = consume(COLON, "Expect ':' in ternary operator.");
+            Token rightOperator = consume(COLON,
+                "Expect ':' in ternary operator.");
             Expr right = expression();
-            expr = new Expr.Ternary(expr, leftOperator, middle, rightOperator, right);
+            expr = new Expr.Ternary(expr, leftOperator, middle, rightOperator,
+                right);
         }
 
         return expr;
@@ -189,7 +248,8 @@ class Parser {
         }
     }
     
-    // primary → NUMBER | STRING | "false" | "true" | "nil" | "(" expression ")"
+    // primary → NUMBER | STRING | "false" | "true" | "nil" | IDENTIFIER |
+    //     "(" expression ")"
     private Expr primary() {
         if (match(NUMBER, STRING)) {
             return new Expr.Literal(previous().literal);
@@ -199,6 +259,8 @@ class Parser {
             return new Expr.Literal(true);
         } else if (match(NIL)) {
             return new Expr.Literal(null);
+        } else if (match(IDENTIFIER)) {
+            return new Expr.Variable(previous());
         } else if (match(LEFT_PAREN)) {
             Expr expr = expression();
             consume(RIGHT_PAREN, "Expect ')' after expression in grouping.");

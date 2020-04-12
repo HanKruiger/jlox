@@ -1,1 +1,3 @@
-"<3" == "<" + 3 ? "lovely" : "there's still a decimal point there but that's fine! " +  "<" + 3
+var a = 31;
+var b = 11;
+print a + b;

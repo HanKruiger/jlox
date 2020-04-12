@@ -21,9 +21,16 @@ public class GenerateAst {
                     "Token rightOperator, Expr right",
                 "Grouping : Expr expression",
                 "Literal : Object value",
-                "Unary : Token operator, Expr right"
+                "Unary : Token operator, Expr right",
+                "Variable : Token name"
             ), false
         );
+
+        defineAst(outputDir, "Stmt", Arrays.asList(
+            "Expression : Expr expression",
+            "Print : Expr expression",
+            "Var : Token name, Expr initializer"
+        ), false);
     }
 
     // Writes a java file with the full hierarchy.
@@ -95,7 +102,8 @@ public class GenerateAst {
             if (argsWritten == fieldDecls.length - 1) {
                 writer.println("            " + split[0] + " " + split[1]);
             } else {
-                writer.println("            " + split[0] + " " + split[1] + ",");
+                writer.println("            " + split[0] + " " + split[1] +
+                    ",");
             }
             argsWritten++;
         }
@@ -103,7 +111,8 @@ public class GenerateAst {
         // Field initialization in constructor
         for (String fieldDecl : fieldDecls) {
             String name = fieldDecl.trim().split(" ")[1];
-            writer.println("            " + "this." + name + " = " + name + ";");
+            writer.println("            " + "this." + name + " = " + name +
+                ";");
         }
         writer.println("        }");
 

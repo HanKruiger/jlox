@@ -3,37 +3,29 @@ JC = javac
 JRE = java
 JREFLAGS = -classpath ./target
 
-TOOLCLASSES = \
+TOOL_MAIN_CLASSES = \
 	com/craftinginterpreters/tool/GenerateAst.java
 
-GENERATEDCLASSES = \
-	com/craftinginterpreters/lox/Expr.java
-
-CLASSES = \
-	com/craftinginterpreters/lox/Lox.java \
-	com/craftinginterpreters/lox/Scanner.java \
-	com/craftinginterpreters/lox/Token.java \
-	com/craftinginterpreters/lox/AstPrinter.java
+GENERATED_CLASSES = \
+	com/craftinginterpreters/lox/Expr.java \
+	com/craftinginterpreters/lox/Stmt.java
 
 default: build
 
-build: expr
-	$(JC) $(JFLAGS) $(CLASSES) $(GENERATEDCLASSES)
+build: ast
+	$(JC) $(JFLAGS) com/craftinginterpreters/lox/Lox.java
 
-toolbuild:
-	$(JC) $(JFLAGS) $(TOOLCLASSES)
-
-clean:
-	$(RM) -rf ./target/* $(GENERATEDCLASSES)
-
-expr: toolbuild
+ast: toolbuild
 	${JRE} ${JREFLAGS} com.craftinginterpreters.tool.GenerateAst ./com/craftinginterpreters/lox
 
-run: expr build
-	${JRE} ${JREFLAGS} com.craftinginterpreters.lox.Lox
+toolbuild:
+	$(JC) $(JFLAGS) $(TOOL_MAIN_CLASSES)
 
-run_ast_printer: expr build
-	${JRE} ${JREFLAGS} com.craftinginterpreters.lox.AstPrinter
+clean:
+	$(RM) -rf ./target/* $(GENERATED_CLASSES)
+
+run: build
+	${JRE} ${JREFLAGS} com.craftinginterpreters.lox.Lox
 
 run_test_file: build
 	${JRE} ${JREFLAGS} com.craftinginterpreters.lox.Lox test.lox

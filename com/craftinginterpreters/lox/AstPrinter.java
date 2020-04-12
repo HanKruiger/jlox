@@ -17,21 +17,29 @@ public class AstPrinter implements Expr.Visitor<String> {
         return parenthesize(expr.leftOperator.lexeme +
             expr.rightOperator.lexeme, expr.left, expr.middle, expr.right);
     }
-    
+
     @Override
     public String visitGroupingExpr(Expr.Grouping expr) {
         return parenthesize("group", expr.expression);
     }
-    
+
     @Override
     public String visitLiteralExpr(Expr.Literal expr) {
-        if (expr.value == null) return "nil";
-        return expr.value.toString();
+        if (expr.value == null) {
+            return "nil";
+        } else {
+            return expr.value.toString();
+        }
     }
-    
+
     @Override
     public String visitUnaryExpr(Expr.Unary expr) {
         return parenthesize(expr.operator.lexeme, expr.right);
+    }
+
+    @Override
+    public String visitVariableExpr(Expr.Variable expr) {
+        return expr.name.lexeme;
     }
 
     private String parenthesize(String lexeme, Expr... exprs) {

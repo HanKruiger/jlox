@@ -1,22 +1,24 @@
 package com.craftinginterpreters.lox;
 
-import com.craftinginterpreters.lox.Expr.Binary;
-import com.craftinginterpreters.lox.Expr.Grouping;
-import com.craftinginterpreters.lox.Expr.Literal;
-import com.craftinginterpreters.lox.Expr.Ternary;
-import com.craftinginterpreters.lox.Expr.Unary;
-import com.craftinginterpreters.lox.Expr.Visitor;
-
 import static com.craftinginterpreters.lox.TokenType.*;
 
-public class Interpreter implements Visitor<Object> {
-    public void interpret(Expr expr) {
+import java.util.List;
+
+public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
+    private Environment environment = new Environment();
+
+    public void interpret(List<Stmt> statements) {
         try {
-            Object value = evaluate(expr);
-            System.out.println(stringify(value));
+            for (Stmt statement : statements) {
+                execute(statement);
+            }
         } catch (RuntimeError e) {
             Lox.runtimeError(e);
         }
+    }
+
+    private void execute(Stmt statement) {
+        statement.accept(this);
     }
 
     private String stringify(Object value) {
@@ -55,24 +57,24 @@ public class Interpreter implements Visitor<Object> {
 
     private void checkNumberOperands(Token operator, Object... operands) {
         for (Object operand : operands) {
-            if (! (operand instanceof Double)) {
+            if (!(operand instanceof Double)) {
                 throw new RuntimeError(operator, "Operands must be numbers.");
             }
         }
     }
 
     @Override
-    public Object visitLiteralExpr(Literal expr) {
+    public Object visitLiteralExpr(Expr.Literal expr) {
         return expr.value;
     }
 
     @Override
-    public Object visitGroupingExpr(Grouping expr) {
+    public Object visitGroupingExpr(Expr.Grouping expr) {
         return evaluate(expr.expression);
     }
 
     @Override
-    public Object visitUnaryExpr(Unary expr) {
+    public Object visitUnaryExpr(Expr.Unary expr) {
         Object value = evaluate(expr.right);
 
         switch (expr.operator.type) {
@@ -88,7 +90,7 @@ public class Interpreter implements Visitor<Object> {
     }
 
     @Override
-    public Object visitBinaryExpr(Binary expr) {
+    public Object visitBinaryExpr(Expr.Binary expr) {
         Object left = evaluate(expr.left);
         Object right = evaluate(expr.right);
 
@@ -117,7 +119,7 @@ public class Interpreter implements Visitor<Object> {
                         "Cannot divide by zero.");
                 }
                 return (double) left / (double) right;
-                
+
             case GREATER:
                 checkNumberOperands(expr.operator, left, right);
                 return (double) left > (double) right;
@@ -130,7 +132,7 @@ public class Interpreter implements Visitor<Object> {
             case LESS_EQUAL:
                 checkNumberOperands(expr.operator, left, right);
                 return (double) left <= (double) right;
-            
+
             case EQUAL_EQUAL:
                 return isEqual(left, right);
             case BANG_EQUAL:
@@ -142,7 +144,7 @@ public class Interpreter implements Visitor<Object> {
     }
 
     @Override
-    public Object visitTernaryExpr(Ternary expr) {
+    public Object visitTernaryExpr(Expr.Ternary expr) {
         if (expr.leftOperator.type == QSTN &&
                 expr.rightOperator.type == COLON) {
             if (isTruthy(evaluate(expr.left))) {
@@ -154,5 +156,30 @@ public class Interpreter implements Visitor<Object> {
             // Should be unreachable.
             return null;
         }
+    }
+
+    @Override
+    public Void visitExpressionStmt(Stmt.Expression stmt) {
+        evaluate(stmt.expression);
+        return null;
+    }
+
+    @Override
+    public Void visitPrintStmt(Stmt.Print stmt) {
+        Object value = evaluate(stmt.expression);
+        System.out.println(stringify(value));
+        return null;
+    }
+
+    @Override
+    public Void visitVarStmt(Stmt.Var stmt) {
+        environment.define(stmt.name.lexeme,
+            stmt.initializer != null ? evaluate(stmt.initializer) : null);
+        return null;
+    }
+
+    @Override
+    public Object visitVariableExpr(Expr.Variable expr) {
+        return environment.get(expr.name);
     }
 }
