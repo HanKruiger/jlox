@@ -137,13 +137,27 @@ class Parser {
         return new Stmt.Var(name, initializer);
     }
 
-    // statement → printStmt | exprStmt ;
+    // statement → printStmt | exprStmt | block ;
     private Stmt statement() {
         if (match(PRINT)) {
             return printStatement();
+        } else if (match(LEFT_BRACE)) {
+            return block();
         } else {
             return expressionStatement();
         }
+    }
+    
+    // block → "{" declaration* "}" ;
+    private Stmt block() {
+        List<Stmt> statements = new ArrayList<>();
+
+        while (!check(RIGHT_BRACE) && !isAtEnd()) {
+            statements.add(declaration());
+        }
+
+        consume(RIGHT_BRACE, "Expect '}' after block.");
+        return new Stmt.Block(statements);
     }
 
     // printStmt → "print" expressionStatement ;

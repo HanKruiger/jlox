@@ -30,8 +30,9 @@ public class GenerateAst {
         defineAst(outputDir, "Stmt", Arrays.asList(
             "Expression : Expr expression",
             "Print : Expr expression",
-            "Var : Token name, Expr initializer"
-        ), false);
+            "Var : Token name, Expr initializer",
+            "Block : List<Stmt> statements"
+        ), true);
     }
 
     // Writes a java file with the full hierarchy.
