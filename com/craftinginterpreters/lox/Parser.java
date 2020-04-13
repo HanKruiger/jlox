@@ -19,11 +19,11 @@ class Parser {
         this.tokens = tokens;
     }
 
-    // program → declarationOrStatement* EOF ;
+    // program → declaration* EOF ;
     public List<Stmt> parse() {
         List<Stmt> statements = new ArrayList<>();
         while (!isAtEnd()) {
-            statements.add(declarationOrStatement());
+            statements.add(declaration());
         }
         return statements;
     }
@@ -110,10 +110,10 @@ class Parser {
         }
     }
 
-    // declarationOrStatement → varDecl | statement ;
-    private Stmt declarationOrStatement() {
+    // declaration → varDecl | statement ;
+    private Stmt declaration() {
         try {
-            if (peek().type == VAR) {
+            if (match(VAR)) {
                 return varDeclaration();
             } else {
                 return statement();
@@ -126,7 +126,6 @@ class Parser {
 
     // varDecl → "var" IDENTIFIER ( "=" expression )? ";" ;
     private Stmt varDeclaration() {
-        consume(VAR, "Expect 'var' keyword in variable declaration.");
         Token name = consume(IDENTIFIER, "Expect variable name.");
 
         Expr initializer = null;
@@ -140,7 +139,7 @@ class Parser {
 
     // statement → printStmt | exprStmt ;
     private Stmt statement() {
-        if (peek().type == PRINT) {
+        if (match(PRINT)) {
             return printStatement();
         } else {
             return expressionStatement();
@@ -149,7 +148,6 @@ class Parser {
 
     // printStmt → "print" expressionStatement ;
     private Stmt printStatement() {
-        consume(PRINT, "Expect 'print' keyword in print statement.");
         Expr expr = expression();
         consume(SEMICOLON, "Expect ';' after print value.");
         return new Stmt.Print(expr);
@@ -163,9 +161,33 @@ class Parser {
         return new Stmt.Expression(expr);
     }
 
-    // expression → ternary
+    // expression → assignment
     private Expr expression() {
-        return ternary();
+        return assignment();
+    }
+
+    // assignment → IDENTIFIER "=" assignment | ternary
+    private Expr assignment() {
+        Expr expr = ternary();
+
+        if (match(EQUAL)) {
+            // It must be an assignment.
+            Token equals = previous();
+            Expr value =  assignment(); // right-recursion
+
+            // Assert the previous expression was a valid l-value, otherwise,
+            // error out. (But don't throw since we're not in a confused state;
+            // we can keep on parsing.)
+            if (expr instanceof Expr.Variable) {
+                // Convert the r-value expression into an l-value
+                Token name = ((Expr.Variable) expr).name;
+                return new Expr.Assign(name, value);
+            } else {
+                error(equals, "Invalid assignment target.");
+            }
+        }
+
+        return expr;
     }
 
     // ternary -> equality ( "?" expression ":" expression )*

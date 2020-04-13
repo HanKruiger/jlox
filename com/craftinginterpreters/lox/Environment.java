@@ -20,4 +20,15 @@ class Environment {
             );
         }
     }
+
+    public void assign(Token name, Object value) {
+        if (values.containsKey(name.lexeme)) {
+            values.put(name.lexeme, value);
+        } else {
+            throw new RuntimeError(
+                name, "Undefined variable '" +
+                name.lexeme + "'."
+            );
+        }
+    }
 }
