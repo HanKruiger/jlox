@@ -171,8 +171,15 @@ class Parser {
     // ('cast' to a statement)
     private Stmt expressionStatement() {
         Expr expr = expression();
-        consume(SEMICOLON, "Expect ';' after expression.");
-        return new Stmt.Expression(expr);
+        if (isAtEnd()) {
+            // Parse an expression at the end of the input as a print
+            // statement. This adds support for entering and evaluating
+            // expressions to the REPL.
+            return new Stmt.Print(expr);
+        } else {
+            consume(SEMICOLON, "Expect ';' after expression.");
+            return new Stmt.Expression(expr);
+        }
     }
 
     // expression → assignment
