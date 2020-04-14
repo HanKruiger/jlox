@@ -231,9 +231,9 @@ class Parser {
         return expr;
     }
 
-    // ternary -> equality ( "?" expression ":" expression )*
+    // ternary -> logic_or ( "?" expression ":" expression )*
     private Expr ternary() {
-        Expr expr = equality();
+        Expr expr = or();
 
         if (match(QSTN)) {
             Token leftOperator = previous();
@@ -247,7 +247,32 @@ class Parser {
 
         return expr;
     }
-    
+
+    // logic_or → logic_and ( "or" logic_and )* ;
+    private Expr or() {
+        Expr expr = and();
+
+        while (match(OR)) {
+            Token operator = previous();
+            Expr right = and();
+            expr = new Expr.Logical(expr, operator, right);
+        }
+
+        return expr;
+    }
+    // logic_and → equality ( "and" equality )* ;
+    private Expr and() {
+        Expr expr = equality();
+
+        while (match(AND)) {
+            Token operator = previous();
+            Expr right = equality();
+            expr = new Expr.Logical(expr, operator, right);
+        }
+
+        return expr;
+    }
+
     // equality → comparison ( ( "!=" | "==" ) comparison )*
     private Expr equality() {
         Expr expr = comparison();
