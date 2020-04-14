@@ -3,6 +3,7 @@ package com.craftinginterpreters.lox;
 import static com.craftinginterpreters.lox.TokenType.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 class Parser {
@@ -137,12 +138,14 @@ class Parser {
         return new Stmt.Var(name, initializer);
     }
 
-    // statement → printStmt | ifStmt | whileStmt | exprStmt | block ;
+    // statement → printStmt | ifStmt | forStmt | whileStmt | exprStmt | block ;
     private Stmt statement() {
         if (match(PRINT)) {
             return printStatement();
         } else if (match(IF)) {
             return ifStatement();
+        } else if (match(FOR)) {
+            return forStatement();
         } else if (match(WHILE)) {
             return whileStatement();
         } else if (match(LEFT_BRACE)) {
@@ -189,6 +192,61 @@ class Parser {
         return new Stmt.If(condition, thenBranch, elseBranch);
     }
     
+    // forStmt → "for" "(" ( varDecl | exprStmt | ";" )
+    //     expression? ";"
+    //     expression? ")" statement ;
+    private Stmt forStatement() {
+        consume(LEFT_PAREN, "Expect '(' after 'for'.");
+
+        Stmt initializer;
+        if (match(SEMICOLON)) {
+            initializer = null;
+        } else if (match(VAR)) {
+            initializer = varDeclaration(); // includes the ';'
+        } else {
+            initializer = expressionStatement(); // includes the ';'
+        }
+
+        Expr condition = null;
+        if (!check(SEMICOLON)) {
+            condition = expression();
+        }
+        consume(SEMICOLON, "Expect ';' after for condition.");
+        
+        Expr increment = null;
+        if (!check(RIGHT_PAREN)) {
+            increment = expression();
+        }
+        consume(RIGHT_PAREN, "Expect ')' after for increment.");
+
+        Stmt body = statement();
+
+        // Desugaring: Build the for construct using while constructs. This way
+        // we don't have to touch the interpreter for this language feature.
+
+        if (increment != null) {
+            body = new Stmt.Block(Arrays.asList(
+                body,
+                new Stmt.Expression(increment)
+            ));
+        }
+
+        if (condition == null) {
+            // Default to infinite loop because why not!
+            condition = new Expr.Literal(true);
+        }
+        body = new Stmt.While(condition, body);
+
+        if (initializer != null) {
+            body = new Stmt.Block(Arrays.asList(
+                initializer,
+                body
+            ));
+        }
+
+        return body;
+    }
+
     // whileStmt → expression ;
     private Stmt whileStatement() {
         consume(LEFT_PAREN, "Expect '(' after 'while'");

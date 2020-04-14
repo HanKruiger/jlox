@@ -8,3 +8,17 @@ while (i < 10000) {
   i = j;
   j = k + i;
 }
+print "That was the first part of the Fibonacci sequence!";
+print "";
+
+var sum = 0;
+var upto = 100; // inclusive
+for (var l = 1; l <= upto; l = l + 1) {
+  sum = sum + l;
+}
+print "The sum of the first " + upto + " 'integers' is " + sum ".";
+if (sum == (upto * (upto + 1)) / 2) {
+  print "And that's a fact!";
+} else {
+  print "And that's fake news!";
+}
