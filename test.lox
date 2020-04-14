@@ -16,7 +16,7 @@ var upto = 100; // inclusive
 for (var l = 1; l <= upto; l = l + 1) {
   sum = sum + l;
 }
-print "The sum of the first " + upto + " 'integers' is " + sum ".";
+print "The sum of the first " + upto + " 'integers' is " + sum + ".";
 if (sum == (upto * (upto + 1)) / 2) {
   print "And that's a fact!";
 } else {
