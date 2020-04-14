@@ -22,3 +22,20 @@ if (sum == (upto * (upto + 1)) / 2) {
 } else {
   print "And that's fake news!";
 }
+
+var i = 0;
+while (true) {
+  print "i = " + i;
+
+  if (i > 2 and i < 5) {
+    print "Continuing and incrementing";
+    i = i + 1;
+    continue;
+  } else if (i > 10) {
+    print "Breaking";
+    break;
+  }
+
+  print "incrementing";
+  i = i + 1;
+}

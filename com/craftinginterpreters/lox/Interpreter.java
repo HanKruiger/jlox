@@ -7,6 +7,9 @@ import java.util.List;
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     private Environment environment = new Environment();
 
+    private boolean breaking = false;
+    private boolean continuing = false;
+
     public void interpret(List<Stmt> statements) {
         try {
             for (Stmt statement : statements) {
@@ -18,13 +21,22 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     private void execute(Stmt statement) {
-        statement.accept(this);
+        if (!breaking && !continuing) {
+            statement.accept(this);
+        } else {
+            // Left this in to be sure...
+            throw new RuntimeError(null,
+                "I was breaking/continuing and tried to execute.");
+        }
     }
 
     private void executeBlock(List<Stmt> statements) {
         environment = new Environment(environment);
         try {
             for (Stmt stmt : statements) {
+                if (breaking || continuing) {
+                    break;
+                }
                 execute(stmt);
             }
         } finally {
@@ -225,7 +237,27 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     public Void visitWhileStmt(Stmt.While stmt) {
         while (isTruthy(evaluate(stmt.condition))) {
             execute(stmt.body);
+            if (breaking) {
+                break;
+            } else if (continuing) {
+                continuing = false;
+                continue;
+            }
         }
+        breaking = false;
+        continuing = false;
+        return null;
+    }
+
+    @Override
+    public Void visitBreakStmt(Stmt.Break stmt) {
+        breaking = true;
+        return null;
+    }
+
+    @Override
+    public Void visitContinueStmt(Stmt.Continue stmt) {
+        continuing = true;
         return null;
     }
 

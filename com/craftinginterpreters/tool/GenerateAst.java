@@ -33,6 +33,8 @@ public class GenerateAst {
             "Print : Expr expression",
             "If : Expr condition, Stmt thenBranch, Stmt elseBranch",
             "While : Expr condition, Stmt body",
+            "Break",
+            "Continue",
             "Var : Token name, Expr initializer",
             "Block : List<Stmt> statements"
         ), true);
@@ -60,7 +62,8 @@ public class GenerateAst {
         for (String type : types) {
             String[] split = type.split(":");
             String className = split[0].trim();
-            String[] fieldDecls = split[1].trim().split(",");
+            String[] fieldDecls = split.length > 1 ?
+                split[1].trim().split(",") : new String[0];
             defineType(writer, baseName, className, fieldDecls);
         }
 

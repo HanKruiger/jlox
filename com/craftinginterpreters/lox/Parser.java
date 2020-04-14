@@ -16,6 +16,9 @@ class Parser {
     // 'Pointer' to current token (we 'scan' tokens now, not characters).
     private int current = 0;
 
+    // Counts how deeply nested inside loop constructs we are.
+    private int loopNesting;
+
     Parser(List<Token> tokens) {
         this.tokens = tokens;
     }
@@ -148,6 +151,10 @@ class Parser {
             return forStatement();
         } else if (match(WHILE)) {
             return whileStatement();
+        } else if (match(BREAK)) {
+            return breakStatement();
+        } else if (match(CONTINUE)) {
+            return continueStatement();
         } else if (match(LEFT_BRACE)) {
             return block();
         } else {
@@ -253,9 +260,28 @@ class Parser {
         Expr condition = expression();
         consume(RIGHT_PAREN,
             "Expect ')' after condition in 'while' statement.");
+        loopNesting++;
         Stmt body = statement();
+        loopNesting--;
 
         return new Stmt.While(condition, body);
+    }
+
+    private Stmt breakStatement() {
+        if (loopNesting <= 0) {
+            throw error(previous(), "'break' disallowed outside of loop.");
+        }
+        consume(SEMICOLON, "Expect ';' after 'break'.");
+        return new Stmt.Break();
+    }
+
+    // continueStmt → "continue" ;
+    private Stmt continueStatement() {
+        if (loopNesting <= 0) {
+            throw error(previous(), "'continue' disallowed outside of loop.");
+        }
+        consume(SEMICOLON, "Expect ';' after 'continue'.");
+        return new Stmt.Continue();
     }
 
     // expressionStatement → expression ;
