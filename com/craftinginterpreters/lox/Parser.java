@@ -137,10 +137,12 @@ class Parser {
         return new Stmt.Var(name, initializer);
     }
 
-    // statement → printStmt | exprStmt | block ;
+    // statement → printStmt | ifStmt | exprStmt | block ;
     private Stmt statement() {
         if (match(PRINT)) {
             return printStatement();
+        } else if (match(IF)) {
+            return ifStatement();
         } else if (match(LEFT_BRACE)) {
             return block();
         } else {
@@ -165,6 +167,24 @@ class Parser {
         Expr expr = expression();
         consume(SEMICOLON, "Expect ';' after print value.");
         return new Stmt.Print(expr);
+    }
+
+    // ifStmt → "if" "(" expression ")" statement ( "else" statement )? ;
+    private Stmt ifStatement() {
+        consume(LEFT_PAREN, "Expect '(' after 'if'.");
+        Expr condition = expression();
+        consume(RIGHT_PAREN, "Expect ')' after condition in 'if' statement.");
+        
+        Stmt thenBranch = statement();
+
+        // Dangling else? We capture the else directly so it pairs with the
+        // closest if.
+        Stmt elseBranch = null;
+        if (match(ELSE)) {
+            elseBranch = statement();
+        }
+
+        return new Stmt.If(condition, thenBranch, elseBranch);
     }
 
     // expressionStatement → expression ;
