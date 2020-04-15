@@ -1,3 +1,5 @@
+var startTime = clock();
+
 // Fibonacci sequence
 var i = 0;
 var j = 1;
@@ -39,3 +41,5 @@ while (true) {
   print "incrementing";
   i = i + 1;
 }
+
+print "This all took " + (clock() - startTime) + " seconds";

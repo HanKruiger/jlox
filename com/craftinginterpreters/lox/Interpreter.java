@@ -2,13 +2,35 @@ package com.craftinginterpreters.lox;
 
 import static com.craftinginterpreters.lox.TokenType.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
-    private Environment environment = new Environment();
+    private final Environment globals = new Environment();
+    private Environment environment = globals;
 
     private boolean breaking = false;
     private boolean continuing = false;
+
+    public Interpreter() {
+        globals.define("clock", new LoxCallable(){
+        
+            @Override
+            public Object call(Interpreter interpreter, List<Object> arguments) {
+                return (double) System.currentTimeMillis() / 1000.0;
+            }
+        
+            @Override
+            public int arity() {
+                return 0;
+            }
+
+            @Override
+            public String toString() {
+                return "<native fn>";
+            }
+        });
+    }
 
     public void interpret(List<Stmt> statements) {
         try {
@@ -208,6 +230,29 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         }
 
         return evaluate(expr.right);
+    }
+
+    @Override
+    public Object visitCallExpr(Expr.Call expr) {
+        Object callee = evaluate(expr.callee);
+
+        List<Object> args = new ArrayList<>();
+        for (Expr arg : expr.arguments) {
+            args.add(evaluate(arg));
+        }
+
+        if (!(callee instanceof LoxCallable)) {
+            throw new RuntimeError(expr.paren, "Expression is not callable.");
+        }
+
+        LoxCallable function = (LoxCallable) callee;
+
+        if (args.size() != function.arity()) {
+            throw new RuntimeError(expr.paren, "Expected " + function.arity() +
+                " arguments, but got " + args.size() + ".");
+        }
+
+        return function.call(this, args);
     }
 
     @Override
