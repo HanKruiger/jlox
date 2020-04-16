@@ -54,6 +54,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     void executeBlock(List<Stmt> statements, Environment environment) {
         Environment previous = this.environment;
+        this.environment = environment;
         try {
             for (Stmt stmt : statements) {
                 if (breaking || continuing) {

@@ -44,8 +44,10 @@ while (true) {
 
 print "This all took " + (clock() - startTime) + " seconds";
 
-fun sayHi() {
-  print "Hi!";
+fun sayHi(greeting, name) {
+  print greeting + ", " + name + "!";
 }
 
-sayHi();
+sayHi("Hello", "Han");
+sayHi("Howdy", "cowboy");
+sayHi("'Ello", "gov'na");
