@@ -35,6 +35,7 @@ public class GenerateAst {
             "Break",
             "Continue",
             "Var : Token name, Expr initializer",
+            "Function : Token name, List<Token> params, List<Stmt> body",
             "Block : List<Stmt> statements"
         ));
     }

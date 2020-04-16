@@ -43,3 +43,9 @@ while (true) {
 }
 
 print "This all took " + (clock() - startTime) + " seconds";
+
+fun sayHi() {
+  print "Hi!";
+}
+
+sayHi();

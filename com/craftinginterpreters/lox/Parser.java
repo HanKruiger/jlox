@@ -114,11 +114,13 @@ class Parser {
         }
     }
 
-    // declaration → varDecl | statement ;
+    // declaration → funDecl | varDecl | statement ;
     private Stmt declaration() {
         try {
             if (match(VAR)) {
                 return varDeclaration();
+            } else if (match(FUN)) {
+                return function("function");
             } else {
                 return statement();
             }
@@ -126,6 +128,29 @@ class Parser {
             synchronize();
             return null;
         }
+    }
+
+    // function → IDENTIFIER "(" parameters? ")" block ;
+    // parameters → IDENTIFIER ( "," IDENTIFIER )* ;
+    private Stmt.Function function(String kind) {
+        Token name = consume(IDENTIFIER, "Expect " + kind + " name.");
+
+        consume(LEFT_PAREN, "Expect '(' after " + kind + " name.");
+        List<Token> parameters = new ArrayList<>();
+        if (!check(RIGHT_PAREN)) {
+            do {
+                if (parameters.size() >= 255) {
+                    error(peek(), "Cannot have more than 255 parameters.");
+                }
+                
+                parameters.add(consume(IDENTIFIER, "Expect parameter name."));
+            } while (match(COMMA));
+        }
+        consume(RIGHT_PAREN, "Expect ')' after parameters.");
+
+        consume(LEFT_BRACE, "Expect '{' before " + kind + " body.");
+        List<Stmt> body = block();
+        return new Stmt.Function(name, parameters, body);
     }
 
     // varDecl → "var" IDENTIFIER ( "=" expression )? ";" ;
@@ -156,14 +181,14 @@ class Parser {
         } else if (match(CONTINUE)) {
             return continueStatement();
         } else if (match(LEFT_BRACE)) {
-            return block();
+            return new Stmt.Block(block());
         } else {
             return expressionStatement();
         }
     }
     
     // block → "{" declaration* "}" ;
-    private Stmt block() {
+    private List<Stmt> block() {
         List<Stmt> statements = new ArrayList<>();
 
         while (!check(RIGHT_BRACE) && !isAtEnd()) {
@@ -171,7 +196,7 @@ class Parser {
         }
 
         consume(RIGHT_BRACE, "Expect '}' after block.");
-        return new Stmt.Block(statements);
+        return statements;
     }
 
     // printStmt → "print" expressionStatement ;

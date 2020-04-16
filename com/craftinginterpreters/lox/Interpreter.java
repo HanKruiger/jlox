@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
-    private final Environment globals = new Environment();
+    static final Environment globals = new Environment();
     private Environment environment = globals;
 
     private boolean breaking = false;
@@ -52,8 +52,8 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         }
     }
 
-    private void executeBlock(List<Stmt> statements) {
-        environment = new Environment(environment);
+    void executeBlock(List<Stmt> statements, Environment environment) {
+        Environment previous = this.environment;
         try {
             for (Stmt stmt : statements) {
                 if (breaking || continuing) {
@@ -62,7 +62,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
                 execute(stmt);
             }
         } finally {
-            environment = environment.enclosing;
+            this.environment = previous;
         }
     }
 
@@ -315,7 +315,14 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitBlockStmt(Stmt.Block blockStmt) {
-        executeBlock(blockStmt.statements);
+        executeBlock(blockStmt.statements, new Environment(environment));
+        return null;
+    }
+
+    @Override
+    public Void visitFunctionStmt(Stmt.Function funcStmt) {
+        LoxFunction function = new LoxFunction(funcStmt);
+        environment.define(funcStmt.name.lexeme, function);
         return null;
     }
 }
