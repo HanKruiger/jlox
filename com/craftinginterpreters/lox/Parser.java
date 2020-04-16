@@ -166,7 +166,8 @@ class Parser {
         return new Stmt.Var(name, initializer);
     }
 
-    // statement → printStmt | ifStmt | forStmt | whileStmt | exprStmt | block ;
+    // statement → printStmt | ifStmt | forStmt | whileStmt | breakStmt
+    //     | continueStmt | returnStmt | block | exprStmt;
     private Stmt statement() {
         if (match(PRINT)) {
             return printStatement();
@@ -180,6 +181,8 @@ class Parser {
             return breakStatement();
         } else if (match(CONTINUE)) {
             return continueStatement();
+        } else if (match(RETURN)) {
+            return returnStatement();
         } else if (match(LEFT_BRACE)) {
             return new Stmt.Block(block());
         } else {
@@ -309,6 +312,20 @@ class Parser {
         }
         consume(SEMICOLON, "Expect ';' after 'continue'.");
         return new Stmt.Continue(continueToken);
+    }
+
+    // returnStmt → "return" expression? ";" ;
+    private Stmt returnStatement() {
+        Token keyword = previous();
+
+        Expr value = null;
+        if (!check(SEMICOLON)) {
+            value = expression();
+        }
+
+        consume(SEMICOLON, "Expect ';' after return statement.");
+
+        return new Stmt.Return(keyword, value);
     }
 
     // expressionStatement → expression ;

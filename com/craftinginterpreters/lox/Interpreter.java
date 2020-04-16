@@ -11,12 +11,15 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     private boolean breaking = false;
     private boolean continuing = false;
+    private boolean returning = false;
+
+    private Object returnValue;
 
     public Interpreter() {
         globals.define("clock", new LoxCallable(){
         
             @Override
-            public Object call(Interpreter interpreter, List<Object> arguments) {
+            public Object call(Interpreter interpreter, List<Object> arguments, Token paren) {
                 return (double) System.currentTimeMillis() / 1000.0;
             }
         
@@ -43,12 +46,12 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     private void execute(Stmt statement) {
-        if (!breaking && !continuing) {
+        if (!breaking && !continuing && !returning) {
             statement.accept(this);
         } else {
             // Left this in to be sure...
             throw new RuntimeError(null,
-                "I was breaking/continuing and tried to execute.");
+                "I was breaking/continuing/returning and tried to execute.");
         }
     }
 
@@ -57,7 +60,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         this.environment = environment;
         try {
             for (Stmt stmt : statements) {
-                if (breaking || continuing) {
+                if (breaking || continuing || returning) {
                     break;
                 }
                 execute(stmt);
@@ -107,6 +110,27 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
                 throw new RuntimeError(operator, "Operands must be numbers.");
             }
         }
+    }
+
+    public Object consumeReturnValue(Token paren) {
+        if (!returning) {
+            // No return keyword was interpreted, so the function body
+            // terminated without a return value. Return `nil` in that case.
+            resetReturningState();
+            return null;
+        }
+
+        Object returnThisValue = returnValue;
+
+        // Reset state after consumption.
+        resetReturningState();
+
+        return returnThisValue;
+    }
+
+    private void resetReturningState() {
+        returning = false;
+        returnValue = null;
     }
 
     @Override
@@ -253,7 +277,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
                 " arguments, but got " + args.size() + ".");
         }
 
-        return function.call(this, args);
+        return function.call(this, args, expr.paren);
     }
 
     @Override
@@ -288,6 +312,8 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
             } else if (continuing) {
                 continuing = false;
                 continue;
+            } else if (returning) {
+                break;
             }
         }
         breaking = false;
@@ -304,6 +330,18 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     @Override
     public Void visitContinueStmt(Stmt.Continue stmt) {
         continuing = true;
+        return null;
+    }
+
+    @Override
+    public Void visitReturnStmt(Stmt.Return stmt) {
+        Object value = null;
+        if (stmt.value != null) {
+            value = evaluate(stmt.value);
+        }
+        returning = true;
+        returnValue = value;
+
         return null;
     }
 

@@ -12,6 +12,7 @@ abstract class Stmt {
         R visitWhileStmt(While stmt);
         R visitBreakStmt(Break stmt);
         R visitContinueStmt(Continue stmt);
+        R visitReturnStmt(Return stmt);
         R visitVarStmt(Var stmt);
         R visitFunctionStmt(Function stmt);
         R visitBlockStmt(Block stmt);
@@ -108,6 +109,23 @@ abstract class Stmt {
         @Override
         <R> R accept(Visitor<R> visitor) {
             return visitor.visitContinueStmt(this);
+        }
+    }
+    static class Return extends Stmt {
+        final Token keyword;
+        final Expr value;
+
+        Return(
+            Token keyword,
+            Expr value
+        ) {
+            this.keyword = keyword;
+            this.value = value;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitReturnStmt(this);
         }
     }
     static class Var extends Stmt {

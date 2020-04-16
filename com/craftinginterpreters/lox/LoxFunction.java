@@ -15,7 +15,7 @@ public class LoxFunction implements LoxCallable {
     }
 
     @Override
-    public Object call(Interpreter interpreter, List<Object> arguments) {
+    public Object call(Interpreter interpreter, List<Object> arguments, Token paren) {
         Environment environment = new Environment(Interpreter.globals);
         for (int i = 0; i < arguments.size(); i++) {
             environment.define(declaration.params.get(i).lexeme,
@@ -23,7 +23,7 @@ public class LoxFunction implements LoxCallable {
         }
 
         interpreter.executeBlock(declaration.body, environment);
-        return null; // TODO: Add return values
+        return interpreter.consumeReturnValue(paren);
     }
 
     @Override

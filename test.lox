@@ -51,3 +51,38 @@ fun sayHi(greeting, name) {
 sayHi("Hello", "Han");
 sayHi("Howdy", "cowboy");
 sayHi("'Ello", "gov'na");
+
+fun sum(a, b) {
+  return a + b;
+}
+
+print sum(21, 21);
+
+fun max(a, b) {
+  return a > b ? a : b;
+}
+
+fun min(a, b) {
+  if (a < b) {
+    while (true) {
+      return a;
+    }
+  } else {
+    while (true) {
+      return b;
+    }
+  }
+}
+
+
+var a = 12;
+var b = 14;
+
+print min(a, b) + " is smaller than " + max(a, b);
+print min(b, a) + " is smaller than " + max(b, a);
+
+fun minClever(a, b) {
+  return -max(-a, -b);
+}
+
+print minClever(a, b) + " is smaller than " + max(a, b);
