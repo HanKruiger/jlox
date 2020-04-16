@@ -83,9 +83,12 @@ abstract class Stmt {
         }
     }
     static class Break extends Stmt {
+        final Token keyword;
 
         Break(
+            Token keyword
         ) {
+            this.keyword = keyword;
         }
 
         @Override
@@ -94,9 +97,12 @@ abstract class Stmt {
         }
     }
     static class Continue extends Stmt {
+        final Token keyword;
 
         Continue(
+            Token keyword
         ) {
+            this.keyword = keyword;
         }
 
         @Override

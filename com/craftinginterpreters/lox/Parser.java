@@ -293,20 +293,22 @@ class Parser {
     }
 
     private Stmt breakStatement() {
+        Token breakToken = previous();
         if (loopNesting <= 0) {
             throw error(previous(), "'break' disallowed outside of loop.");
         }
         consume(SEMICOLON, "Expect ';' after 'break'.");
-        return new Stmt.Break();
+        return new Stmt.Break(breakToken);
     }
 
     // continueStmt → "continue" ;
     private Stmt continueStatement() {
+        Token continueToken = previous();
         if (loopNesting <= 0) {
             throw error(previous(), "'continue' disallowed outside of loop.");
         }
         consume(SEMICOLON, "Expect ';' after 'continue'.");
-        return new Stmt.Continue();
+        return new Stmt.Continue(continueToken);
     }
 
     // expressionStatement → expression ;
