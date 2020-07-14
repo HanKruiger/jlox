@@ -15,6 +15,7 @@ abstract class Stmt {
         R visitReturnStmt(Return stmt);
         R visitVarStmt(Var stmt);
         R visitFunctionStmt(Function stmt);
+        R visitClassStmt(Class stmt);
         R visitBlockStmt(Block stmt);
     }
 
@@ -163,6 +164,23 @@ abstract class Stmt {
         @Override
         <R> R accept(Visitor<R> visitor) {
             return visitor.visitFunctionStmt(this);
+        }
+    }
+    static class Class extends Stmt {
+        final Token name;
+        final List<Stmt.Function> methods;
+
+        Class(
+            Token name,
+            List<Stmt.Function> methods
+        ) {
+            this.name = name;
+            this.methods = methods;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitClassStmt(this);
         }
     }
     static class Block extends Stmt {

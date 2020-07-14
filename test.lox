@@ -124,3 +124,32 @@ var a = "global";
   var a = "block";
   showA();
 }
+
+class Egg {
+  init(oneYolk) {
+    this.yolks = 1;
+    print oneYolk;
+    if (oneYolk) {
+      return;
+    }
+    this.yolks = 2;
+  }
+  cook() {
+    print "Egg is frying!";
+  }
+
+  serve(who) {
+    print "Enjoy your egg, " + who + "!";
+    print "It has " + this.yolks + " yolks!";
+  }
+}
+
+print Egg;
+
+var egg = Egg(true);
+print egg;
+egg.cook();
+egg.serve("Han");
+
+var weirdEgg = Egg(false);
+weirdEgg.serve("Han");

@@ -114,13 +114,15 @@ class Parser {
         }
     }
 
-    // declaration → funDecl | varDecl | statement ;
+    // declaration → classDecl | funDecl | varDecl | statement ;
     private Stmt declaration() {
         try {
-            if (match(VAR)) {
-                return varDeclaration();
+            if (match(CLASS)) {
+                return classDeclaration();
             } else if (match(FUN)) {
                 return function("function");
+            } else if (match(VAR)) {
+                return varDeclaration();
             } else {
                 return statement();
             }
@@ -128,6 +130,21 @@ class Parser {
             synchronize();
             return null;
         }
+    }
+
+    // classDecl → "class" IDENTIFIER "{" function* "}" ;
+    private Stmt classDeclaration() {
+        Token name = consume(IDENTIFIER, "Expect class name.");
+        consume(LEFT_BRACE, "Expect '{' before class body.");
+
+        List<Stmt.Function> methods = new ArrayList<>();
+        while (!check(RIGHT_BRACE) && !isAtEnd()) {
+            methods.add(function("method"));
+        }
+
+        consume(RIGHT_BRACE, "Expect '}' after class body.");
+
+        return new Stmt.Class(name, methods);
     }
 
     // function → IDENTIFIER "(" parameters? ")" block ;
@@ -348,7 +365,7 @@ class Parser {
         return assignment();
     }
 
-    // assignment → IDENTIFIER "=" assignment | ternary
+    // assignment → ( call "." )? IDENTIFIER "=" assignment | ternary
     private Expr assignment() {
         Expr expr = ternary();
 
@@ -364,6 +381,9 @@ class Parser {
                 // Convert the r-value expression into an l-value
                 Token name = ((Expr.Variable) expr).name;
                 return new Expr.Assign(name, value);
+            } else if (expr instanceof Expr.Get) {
+                Expr.Get get = (Expr.Get) expr;
+                return new Expr.Set(get.object, get.name, value);
             } else {
                 error(equals, "Invalid assignment target.");
             }
@@ -477,13 +497,17 @@ class Parser {
         }
     }
     
-    // call → primary ( "(" arguments? ")" )* ;
+    // call → primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
     private Expr call() {
         Expr expr = primary();
 
         while (true) {
             if (match(LEFT_PAREN)) {
                 expr = finishCall(expr);
+            } else if (match(DOT)) {
+                Token name = consume(IDENTIFIER,
+                    "Expect property name after '.'.");
+                expr = new Expr.Get(expr, name);
             } else {
                 break;
             }
@@ -520,6 +544,8 @@ class Parser {
             return new Expr.Literal(true);
         } else if (match(NIL)) {
             return new Expr.Literal(null);
+        } else if (match(THIS)) {
+            return new Expr.This(previous());
         } else if (match(IDENTIFIER)) {
             return new Expr.Variable(previous());
         } else if (match(LEFT_PAREN)) {
