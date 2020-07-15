@@ -153,3 +153,28 @@ egg.serve("Han");
 
 var weirdEgg = Egg(false);
 weirdEgg.serve("Han");
+
+class Animal {
+  to_string() {
+    return "animal";
+  }
+  wave() {
+    print "The " + this.to_string() +" waves.";
+  }
+}
+
+class Dog < Animal {
+  to_string() {
+    return "dog";
+  }
+
+  wave() {
+    super.wave();
+    print "It also wiggles its tail and barks happily.";
+  }
+}
+
+var animal = Animal();
+animal.wave();
+var laska = Dog();
+laska.wave();

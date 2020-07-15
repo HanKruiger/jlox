@@ -17,7 +17,7 @@ public class GenerateAst {
         defineAst(outputDir, "Expr", Arrays.asList(
             "Assign : Token name, Expr value",
             "Binary : Expr left, Token operator, Expr right",
-            "Ternary : Expr left, Token leftOperator, Expr middle," +
+            "Ternary : Expr left, Token leftOperator, Expr middle, " +
                 "Token rightOperator, Expr right",
             "Grouping : Expr expression",
             "Literal : Object value",
@@ -27,6 +27,7 @@ public class GenerateAst {
             "Get : Expr object, Token name",
             "Set : Expr object, Token name, Expr value",
             "This : Token keyword",
+            "Super : Token keyword, Token method",
             "Variable : Token name"
         ));
 
@@ -40,7 +41,8 @@ public class GenerateAst {
             "Return : Token keyword, Expr value",
             "Var : Token name, Expr initializer",
             "Function : Token name, List<Token> params, List<Stmt> body",
-            "Class : Token name, List<Stmt.Function> methods",
+            "Class : Token name, Expr.Variable superclass, " +
+                "List<Stmt.Function> methods",
             "Block : List<Stmt> statements"
         ));
     }
